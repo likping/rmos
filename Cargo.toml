@@ -1,0 +1,13 @@
+[package]
+name = "rmos"
+version = "0.1.0"
+edition = "2018"
+[package.metadata.bootimage]
+build-command = ["xbuild"]
+run-command = ["qemu-system-x86_64", "-drive", "format=raw,file={}"]
+[dependencies]
+bootloader = "0.9.3"
+[profile.dev]
+panic="abort"
+[profile.release]
+panic="abort"
