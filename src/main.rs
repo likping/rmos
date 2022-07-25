@@ -9,8 +9,9 @@ mod vga_buffer;
 // use crate::common::port::Port::InputOutput;
 // use common::{Port};
 #[panic_handler]
-fn panic(_info:&PanicInfo)->!{
-   loop{} 
+fn panic(info: &PanicInfo) -> ! {
+    println!("{}", info);
+    loop {}
 }
 /*整个生命周期有效*/
 static mut vga_x :i8=0;
@@ -31,7 +32,13 @@ static HELLO: &[u8] = b"Hello World!";
 //     loop {}
 // }
 #[no_mangle]
-pub extern "C" fn _start()->!{
-    vga_buffer::print_something();
-    loop{}
+pub extern "C" fn _start() -> ! {
+    // use core::fmt::Write;
+    // vga_buffer::WRITER.lock().write_str("Hello again").unwrap();
+    // write!(vga_buffer::WRITER.lock(), ", some numbers: {} {}", 42, 1.337).unwrap();
+    println!("Hello World{}","!");
+    panic!("Some panic message");
+    loop {}
 }
+
+
