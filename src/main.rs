@@ -1,44 +1,63 @@
 #![no_std]//禁用标准库
 #![no_main]//不使用预定义的入口
+
 #![allow(dead_code, unused_imports,non_snake_case,unused_variables,non_upper_case_globals)]
+#![feature(custom_test_frameworks)]
+#![test_runner(crate::test_runner)]
+#![reexport_test_harness_main = "test_main"]
+
+#[cfg(test)]
+fn test_runner(tests: &[&dyn Fn()]) {
+    println!("Running {} tests", tests.len());
+    for test in tests {
+        test();
+    }
+    exit_qemu(QemuExitCode::Success);
+}
+
+#[derive(Debug,Clone,Copy,PartialEq,Eq)]
+#[repr(u32)]
+pub enum QemuExitCode{
+    Success=0x10,
+    Failed=0x11,
+}
+
+pub fn exit_qemu(exit_code:QemuExitCode){
+    use x86_64::instructions::port::Port;
+
+    unsafe{
+        let mut port=Port::new(0xf4);
+        port.write(exit_code as u32);
+    }
+}
+
 use core::panic::PanicInfo;
 use core::arch::{asm, global_asm};
 mod vga_buffer;
 
-// mod common;
-// use crate::common::port::Port::InputOutput;
-// use common::{Port};
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
     loop {}
 }
-/*整个生命周期有效*/
-static mut vga_x :i8=0;
-static mut vga_y :i8 =0; 
-/*打印字符*/
-static HELLO: &[u8] = b"Hello World!";
-// #[no_mangle]
-// pub extern "C" fn _start() -> ! {
-//     let vga_buffer = 0xb8000 as *mut u8;
 
-//     for (i, &byte) in HELLO.iter().enumerate() {
-//         unsafe {
-//             *vga_buffer.offset(i as isize * 2) = byte;
-//             *vga_buffer.offset(i as isize * 2 + 1) = 0xb;
-//         }
-//     }
+#[test_case]
+fn trivial_assertion(){
+    print!("trival assertion...");
+    assert_eq!(1,1);
+    println!("[ok]");
+}
 
-//     loop {}
-// }
+
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    // use core::fmt::Write;
-    // vga_buffer::WRITER.lock().write_str("Hello again").unwrap();
-    // write!(vga_buffer::WRITER.lock(), ", some numbers: {} {}", 42, 1.337).unwrap();
-    println!("Hello World{}","!");
-    panic!("Some panic message");
+    println!("Hello World{}", "!");
+
+    #[cfg(test)]
+    test_main();
+
     loop {}
 }
+
 
 
