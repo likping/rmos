@@ -5,14 +5,21 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
-
+pub mod serial;
 #[cfg(test)]
 fn test_runner(tests: &[&dyn Fn()]) {
-    println!("Running {} tests", tests.len());
+    serial_println!("Running {} tests", tests.len());
     for test in tests {
         test();
     }
     exit_qemu(QemuExitCode::Success);
+}
+
+#[test_case]
+fn trivial_assertion(){
+    serial_print!("trival assertion...");
+    assert_eq!(0,1);
+    serial_println!("[ok]");
 }
 
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
@@ -41,12 +48,6 @@ fn panic(info: &PanicInfo) -> ! {
     loop {}
 }
 
-#[test_case]
-fn trivial_assertion(){
-    print!("trival assertion...");
-    assert_eq!(1,1);
-    println!("[ok]");
-}
 
 
 #[no_mangle]
